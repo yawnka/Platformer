@@ -24,6 +24,10 @@ void Entity::ai_activate(Entity *player)
         case GUARD:
             ai_guard(player);
             break;
+
+        case JUMPER:
+            ai_jump();
+            break;
             
         default:
             break;
@@ -57,6 +61,13 @@ void Entity::ai_guard(Entity *player)
             break;
     }
 }
+
+void Entity::ai_jump() {
+    if (m_ai_state == JUMPING && m_collided_bottom) {
+        m_is_jumping = true;
+    }
+}
+
 // Default constructor
 Entity::Entity()
     : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
@@ -267,6 +278,9 @@ void const Entity::check_collision_y(Map *map)
         m_collided_bottom = true;
         
     }
+    std::cout << "Position Y: " << m_position.y << ", Penetration Y: " << penetration_y
+              << ", Collided Bottom: " << m_collided_bottom << std::endl;
+
 }
 
 void const Entity::check_collision_x(Map *map)
@@ -294,13 +308,19 @@ void const Entity::check_collision_x(Map *map)
 void Entity::update(float delta_time, Entity *player, Entity *collidable_entities, int collidable_entity_count, Map *map)
 {
     if (!m_is_active) return;
- 
-    m_collided_top    = false;
-    m_collided_bottom = false;
-    m_collided_left   = false;
-    m_collided_right  = false;
     
     if (m_entity_type == ENEMY) ai_activate(player);
+    
+    m_collided_top = false;
+    m_collided_bottom = false;
+    m_collided_left = false;
+    m_collided_right = false;
+    
+    if (m_entity_type == ENEMY) {
+    std::cout << "Enemy Position: " << m_position.y << ", Velocity: " << m_velocity.y
+              << ", Collided Bottom: " << m_collided_bottom << std::endl;
+}
+
     
     if (m_animation_indices != NULL)
     {
@@ -325,9 +345,8 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
     m_velocity.x = m_movement.x * m_speed;
     m_velocity += m_acceleration * delta_time;
     
-    if (m_is_jumping)
-    {
-        m_is_jumping = false;
+    if (m_is_jumping) {
+        m_is_jumping = false;  // Reset the jump flag
         m_velocity.y += m_jumping_power;
     }
     
@@ -342,11 +361,15 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
     
     m_model_matrix = glm::mat4(1.0f);
     m_model_matrix = glm::translate(m_model_matrix, m_position);
+    
 }
 
 
 void Entity::render(ShaderProgram* program)
 {
+    m_model_matrix = glm::mat4(1.0f);
+    m_model_matrix = glm::translate(m_model_matrix, m_position);
+    m_model_matrix = glm::scale(m_model_matrix, glm::vec3(m_visual_scale, m_visual_scale, 1.0f)); //scale entity
     program->set_model_matrix(m_model_matrix);
 
     if (m_animation_indices != NULL)
@@ -355,8 +378,14 @@ void Entity::render(ShaderProgram* program)
         return;
     }
 
-    float vertices[] = { -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5 };
-    float tex_coords[] = { 0.0,  1.0, 1.0,  1.0, 1.0, 0.0,  0.0,  1.0, 1.0, 0.0,  0.0, 0.0 };
+    float vertices[] = {
+            -0.5, -0.5, 0.5, -0.5, 0.5, 0.5,
+            -0.5, -0.5, 0.5, 0.5, -0.5, 0.5
+    };
+    float tex_coords[] = {
+        0.0, 1.0, 1.0, 1.0, 1.0, 0.0,
+        0.0, 1.0, 1.0, 0.0, 0.0, 0.0
+    };
 
     glBindTexture(GL_TEXTURE_2D, m_texture_id);
 

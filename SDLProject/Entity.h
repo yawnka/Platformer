@@ -5,8 +5,8 @@
 #include "glm/glm.hpp"
 #include "ShaderProgram.h"
 enum EntityType { PLATFORM, PLAYER, ENEMY  };
-enum AIType     { WALKER, GUARD            };
-enum AIState    { WALKING, IDLE, ATTACKING };
+enum AIType { WALKER, GUARD, JUMPER };
+enum AIState { WALKING, IDLE, ATTACKING, JUMPING };
 
 
 enum AnimationDirection { LEFT, RIGHT, UP, DOWN };
@@ -59,6 +59,7 @@ private:
 public:
     // ————— STATIC VARIABLES ————— //
     static constexpr int SECONDS_PER_FRAME = 4;
+    float m_visual_scale = 1.0f;
 
     // ————— METHODS ————— //
     Entity();
@@ -85,6 +86,7 @@ public:
     void ai_activate(Entity *player);
     void ai_walk();
     void ai_guard(Entity *player);
+    void ai_jump();
     
     void normalise_movement() { m_movement = glm::normalize(m_movement); }
 

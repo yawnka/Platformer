@@ -1,5 +1,7 @@
 #include "Scene.h"
 
+#define JUMPER_JUMP_POWER 2.0f
+
 class LevelB : public Scene {
 public:
     int ENEMY_COUNT = 1;

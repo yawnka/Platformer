@@ -27,8 +27,8 @@
 #include "Effects.h"
 
 // ––––– CONSTANTS ––––– //
-constexpr int WINDOW_WIDTH  = 640,
-          WINDOW_HEIGHT = 480;
+constexpr int WINDOW_WIDTH  = 680 * 2,
+          WINDOW_HEIGHT = 800;
 
 constexpr float BG_RED     = 0.1922f,
             BG_BLUE    = 0.549f,
@@ -176,6 +176,7 @@ void update()
     g_previous_ticks = ticks;
     
     delta_time += g_accumulator;
+    
     
     if (delta_time < FIXED_TIMESTEP)
     {
