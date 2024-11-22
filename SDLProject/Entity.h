@@ -75,7 +75,7 @@ public:
     
     void const check_collision_y(Entity* collidable_entities, int collidable_entity_count);
     void const check_collision_x(Entity* collidable_entities, int collidable_entity_count);
-    
+    bool const check_head_collision(Entity* other) const;
     // Overloading our methods to check for only the map
     void const check_collision_y(Map *map);
     void const check_collision_x(Map *map);
@@ -121,6 +121,7 @@ public:
     
     void activate()   { m_is_active = true;  };
     void deactivate() { m_is_active = false; };
+    bool is_active() const { return m_is_active; }
     // ————— SETTERS ————— //
     void const set_entity_type(EntityType new_entity_type)  { m_entity_type = new_entity_type;};
     void const set_ai_type(AIType new_ai_type){ m_ai_type = new_ai_type;};

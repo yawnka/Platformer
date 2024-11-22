@@ -16,6 +16,11 @@
 #include "Entity.h"
 #include "Map.h"
 
+enum AppStatus { RUNNING, PAUSED, TERMINATED };
+extern int g_total_enemies;
+extern int g_total_enemies_defeated;
+extern AppStatus g_app_status;
+
 /**
     Notice that the game's state is now part of the Scene class, not the main file.
 */
@@ -32,6 +37,9 @@ struct GameState
     
     // ————— POINTERS TO OTHER SCENES ————— //
     int next_scene_id;
+    
+    // ————— COUNTER ————— //
+    int enemies_defeated = 0;
 };
 
 class Scene {

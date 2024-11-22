@@ -110,6 +110,6 @@ bool Map::is_solid(glm::vec3 position, float *penetration_x, float *penetration_
     *penetration_x = (m_tile_size / 2) - fabs(position.x - tile_center_x);
     *penetration_y = (m_tile_size / 2) - fabs(position.y - tile_center_y);
     
-    std::cout << "Checking tile for position: " << position.x << ", " << position.y << std::endl;
+//    std::cout << "Checking tile for position: " << position.x << ", " << position.y << std::endl;
     return true;
 }

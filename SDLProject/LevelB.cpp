@@ -1,5 +1,7 @@
 #include "LevelB.h"
 #include "Utility.h"
+#include "Scene.h"
+#include "Scene.h"
 
 #define LEVEL_WIDTH 14
 #define LEVEL_HEIGHT 8
@@ -31,6 +33,7 @@ LevelB::~LevelB()
 void LevelB::initialise()
 {
     m_game_state.next_scene_id = -1;
+    m_game_state.enemies_defeated = 0;
     
     GLuint map_texture_id = Utility::load_texture("assets/tileset_1.png");
     m_game_state.map = new Map(LEVEL_WIDTH, LEVEL_HEIGHT, LEVELB_DATA, map_texture_id, 1.0f,3, 1);
@@ -73,7 +76,7 @@ void LevelB::initialise()
     m_game_state.player->set_position(glm::vec3(5.0f, 0.0f, 0.0f));
 
     // Jumping
-    m_game_state.player->set_jumping_power(3.0f);
+    m_game_state.player->set_jumping_power(4.0f);
     
     /**
     Enemies' stuff */
@@ -117,7 +120,7 @@ void LevelB::initialise()
     m_game_state.enemies[0].set_position(glm::vec3(3.0f, -5.0f, 0.0f));
     m_game_state.enemies[0].set_ai_type(JUMPER);
     m_game_state.enemies[0].set_ai_state(JUMPING);
-    m_game_state.enemies[0].set_jumping_power(2.0f);
+    m_game_state.enemies[0].set_jumping_power(5.0f);
     
     /**
      BGM and SFX
@@ -134,10 +137,37 @@ void LevelB::initialise()
 void LevelB::update(float delta_time)
 {
     m_game_state.player->update(delta_time, m_game_state.player, m_game_state.enemies, ENEMY_COUNT, m_game_state.map);
+    
     for (int i = 0; i < ENEMY_COUNT; i++)
     {
+        if (!m_game_state.enemies[i].is_active()) continue;
+        
         m_game_state.enemies[i].update(delta_time, m_game_state.player, NULL, NULL, m_game_state.map);
+
+        if (m_game_state.player->check_head_collision(&m_game_state.enemies[i]))
+        {
+            // Deactivate the enemy
+            m_game_state.enemies[i].deactivate();
+
+            // Bounce the player
+            m_game_state.player->set_velocity(glm::vec3(m_game_state.player->get_velocity().x, 4.0f, 0.0f));
+
+            // Increment local and global enemies_defeated counters
+            m_game_state.enemies_defeated++;
+            g_total_enemies_defeated++;
+
+            Mix_PlayChannel(-1, m_game_state.jump_sfx, 0); // Play jump SFX
+        }
+
     }
+    if (m_game_state.player->get_position().y < -10.0f) m_game_state.next_scene_id = 1;
+    
+    if (g_total_enemies_defeated == g_total_enemies)
+    {
+        std::cout << "All enemies defeated! Pausing game." << std::endl;  // Debugging output
+        g_app_status = PAUSED;
+    }
+
 }
 
 void LevelB::render(ShaderProgram *program)
@@ -145,5 +175,10 @@ void LevelB::render(ShaderProgram *program)
     m_game_state.map->render(program);
     m_game_state.player->render(program);
     for (int i = 0; i < m_number_of_enemies; i++)
+    {
+        if (m_game_state.enemies[i].is_active())
+        {
             m_game_state.enemies[i].render(program);
+        }
+    }
 }

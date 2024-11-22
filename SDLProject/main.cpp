@@ -45,7 +45,7 @@ constexpr char V_SHADER_PATH[] = "shaders/vertex_lit.glsl",
 
 constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 
-enum AppStatus { RUNNING, TERMINATED };
+//enum AppStatus { RUNNING, TERMINATED };
 // ––––– GLOBAL VARIABLES ––––– //
 
 Scene  *g_current_scene;
@@ -66,6 +66,10 @@ float g_previous_ticks = 0.0f;
 float g_accumulator = 0.0f;
 
 bool g_is_colliding_bottom = false;
+
+int g_total_enemies = 0;
+int g_total_enemies_defeated = 0;
+
 
 // ––––– GENERAL FUNCTIONS ––––– //
 void switch_to_scene(Scene *scene)
@@ -112,6 +116,8 @@ void initialise()
     
     g_levels[0] = g_levelA;
     g_levels[1] = g_levelB;
+    
+    g_total_enemies = g_levelA->get_number_of_enemies() + g_levelB->get_number_of_enemies();
     
     // Start at level A
     switch_to_scene(g_levels[0]);
@@ -171,6 +177,8 @@ void process_input()
 
 void update()
 {
+    if (g_app_status == PAUSED) return;
+    
     float ticks = (float)SDL_GetTicks() / MILLISECONDS_IN_SECOND;
     float delta_time = ticks - g_previous_ticks;
     g_previous_ticks = ticks;
@@ -219,6 +227,23 @@ void render()
  
     glUseProgram(g_shader_program.get_program_id());
     g_current_scene->render(&g_shader_program);
+    
+    if (g_app_status == PAUSED)
+        {
+            glm::vec3 player_position = g_current_scene->get_state().player->get_position();
+            glm::vec3 message_position = player_position + glm::vec3(-1.5f, 0.5f, 0.0f);
+
+            // Display "You Win" text
+            Utility::draw_text(
+                &g_shader_program,
+                Utility::load_texture("assets/font1.png"),
+                "You Win!",
+                0.8f,    // Font size
+                0.05f,   // Spacing
+                message_position
+            );
+        }
+    
     g_effects->render();
     
     SDL_GL_SwapWindow(g_display_window);
@@ -238,12 +263,13 @@ int main(int argc, char* argv[])
 {
     initialise();
     
-    while (g_app_status == RUNNING)
+    while (g_app_status != TERMINATED)
     {
         process_input();
-        update();
-        
-        if (g_current_scene->get_state().next_scene_id >= 0) switch_to_scene(g_levels[g_current_scene->get_state().next_scene_id]);
+        if (g_app_status == RUNNING) {
+                    update();
+            if (g_current_scene->get_state().next_scene_id >= 0) switch_to_scene(g_levels[g_current_scene->get_state().next_scene_id]);
+        }
         
         render();
     }
